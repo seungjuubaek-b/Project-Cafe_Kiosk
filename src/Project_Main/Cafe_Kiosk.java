@@ -14,6 +14,11 @@ public class Cafe_Kiosk {
   private final String USER = "root";
   private final String PASSWORD = "1111";
 
+  // 콘솔 화면을 깨끗하게 비워주는 메소드
+  private void clearConsole() {
+    for (int i = 0; i < 50; i++) System.out.println();
+  }
+
   public void start() {
     String clerkName = "직원";
     try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -26,6 +31,7 @@ public class Cafe_Kiosk {
       e.printStackTrace();
     }
 
+    clearConsole();
     System.out.println("==================================================");
     System.out.println(" ☕ 어서오세요~ 코스타커피입니다! ☕  [담당 직원: " + clerkName + "]");
     System.out.println("==================================================");
@@ -40,6 +46,7 @@ public class Cafe_Kiosk {
       String choice = sc.nextLine();
       if (choice.equals("1")) {
         cart.clear();
+        clearConsole();
         showCategoryScreen();
       } else if (choice.equals("2")) {
         System.out.println("\n프로그램을 종료합니다.");
@@ -67,16 +74,21 @@ public class Cafe_Kiosk {
         System.out.println("\n  [4] 다음(결제)   [0] 이전");
         System.out.print("\n👉 선택 : ");
         String choice = sc.nextLine();
-        if (choice.equals("0")) return;
+        if (choice.equals("0")) {
+          clearConsole();
+          return;
+        }
         if (choice.equals("4")) {
           if (cart.isEmpty()) {
             System.out.println("\n❌ 담긴 메뉴가 없습니다. 메뉴를 먼저 선택해주세요.");
             continue;
           }
+          clearConsole();
           showPaymentConfirmScreen();
           return;
         }
         if (categoryIds.contains(choice)) {
+          clearConsole();
           showMenuFromDB(choice);
         } else {
           System.out.println("\n❌ 잘못 선택하셨습니다. 다시 선택해주세요.");
@@ -106,8 +118,12 @@ public class Cafe_Kiosk {
         System.out.print("\n👉 메뉴 번호 입력 : ");
         String input = sc.nextLine();
         int choice = Integer.parseInt(input);
-        if (choice == 0) return;
+        if (choice == 0) {
+          clearConsole();
+          return;
+        }
         if (choice > 0 && choice <= products.size()) {
+          clearConsole();
           showQuantityScreen(products.get(choice - 1));
           return;
         } else {
@@ -131,6 +147,7 @@ public class Cafe_Kiosk {
     }
     cart.add(new CartItem(product, qty));
     while (true) {
+      clearConsole();
       System.out.println("\n✅ [" + product.name + " " + qty + "개]를 장바구니에 담았습니다.");
       System.out.println("\n--- 🛒 현재 장바구니 현황 ---");
       int tempTotal = calculateTotal();
@@ -143,13 +160,16 @@ public class Cafe_Kiosk {
       System.out.print("👉 선택 : ");
       String choice = sc.nextLine();
       if (choice.equals("1")) {
+        clearConsole();
         showCategoryScreen();
         return;
       } else if (choice.equals("2")) {
+        clearConsole();
         showPaymentConfirmScreen();
         return;
       } else if (choice.equals("0")) {
         if (!cart.isEmpty()) cart.remove(cart.size() - 1);
+        clearConsole();
         return;
       } else {
         System.out.println("\n❌ 잘못 선택하셨습니다.");
@@ -177,10 +197,12 @@ public class Cafe_Kiosk {
       System.out.print("결제하시겠습니까? (1. 네 / 2. 아니요) : ");
       String choice = sc.nextLine();
       if (choice.equals("1")) {
+        clearConsole();
         showPaymentMethodScreen();
         return;
       } else if (choice.equals("2")) {
         cart.clear();
+        clearConsole();
         showStartScreen();
         return;
       }
@@ -188,7 +210,6 @@ public class Cafe_Kiosk {
   }
 
   private void showPaymentMethodScreen() {
-// 루프 밖으로 빼서 포인트 사용 후에도 금액이 유지되도록 수정
     int totalOriginalPrice = calculateTotal();
     int remainPrice = totalOriginalPrice;
     int usedPointAmount = 0;
@@ -214,7 +235,7 @@ public class Cafe_Kiosk {
           ResultSet rs = pstmt.executeQuery();
           if (rs.next()) {
             custId = rs.getInt("custid");
-            customerPhone = phone;
+            customerPhone = phone; // 여기서 번호를 저장해둡니다.
             int totalPoint = rs.getInt("total_point");
             System.out.println("\n⭐ [포인트 조회] 현재 보유 포인트: " + totalPoint + "P");
             if (totalPoint >= 2000) {
@@ -222,7 +243,7 @@ public class Cafe_Kiosk {
               maxUsable = Math.min(maxUsable, remainPrice);
               System.out.print("✨ " + maxUsable + "포인트를 사용하시겠습니까? (1. 예 / 2. 아니요) : ");
               if (sc.nextLine().equals("1")) {
-                usedPointAmount += maxUsable; // 누적 사용 가능하도록 수정
+                usedPointAmount += maxUsable;
                 remainPrice -= maxUsable;
                 System.out.println("✅ 포인트 적용됨. 남은 금액: " + remainPrice + "원");
                 if (remainPrice == 0) {
@@ -242,6 +263,7 @@ public class Cafe_Kiosk {
         processFinalPayment(method, usedPointAmount, totalOriginalPrice, custId, customerPhone);
         return;
       } else if (choice.equals("0")) {
+        clearConsole();
         showPaymentConfirmScreen();
         return;
       }
@@ -290,7 +312,6 @@ public class Cafe_Kiosk {
     } catch (SQLException e) {}
   }
 
-  // [수정 핵심] 사용한 포인트를 제외한 실결제액에서 5% 적립 로직 적용
   private void processFinalPayment(String paymentMethod, int usedPoint, int totalOriginalPrice, int existingCustId, String customerPhone) {
     int earnedPoint = 0;
     int custId = existingCustId;
@@ -298,7 +319,6 @@ public class Cafe_Kiosk {
 
     System.out.println("\n🎉 결제가 성공적으로 완료되었습니다!");
 
-    // 1. 포인트 전액 결제인 경우 적립 절차를 완전히 건너뜀
     if (paymentMethod.equals("포인트전액")) {
       System.out.println("ℹ️ 포인트 전액 결제 시에는 추가 적립이 불가능합니다.");
     } else {
@@ -306,25 +326,28 @@ public class Cafe_Kiosk {
         System.out.print("포인트를 적립하시겠습니까? (1. 예 / 2. 아니요) : ");
         String earnChoice = sc.nextLine();
         if (earnChoice.equals("1")) {
-          while (true) {
-            System.out.print("\n📱 적립할 핸드폰 번호 입력 (예: 010-1234-5678) : ");
-            phone = sc.nextLine();
-            custId = findMemberByPhone(phone);
+          // [수정 핵심] 이미 핸드폰 번호가 저장되어 있다면(포인트 조회/사용을 했다면) 다시 묻지 않음
+          if (phone == null || phone.isEmpty()) {
+            while (true) {
+              System.out.print("\n📱 적립할 핸드폰 번호 입력 (예: 010-1234-5678) : ");
+              phone = sc.nextLine();
+              custId = findMemberByPhone(phone);
 
-            if (custId == -1) {
-              System.out.print("❓ 신규 회원으로 등록하시겠습니까? (1. 예 / 2. 아니요) : ");
-              String regChoice = sc.nextLine();
-              if (regChoice.equals("1")) {
-                custId = createNewCustomer(phone);
-                System.out.println("\n✨ [신규 회원 등록] 코스타커피의 새로운 회원이 되신 것을 환영합니다!");
-                break;
-              } else {
-                System.out.println("다시 번호를 입력해 주세요.");
-                continue;
-              }
-            } else { break; }
+              if (custId == -1) {
+                System.out.print("❓ 신규 회원으로 등록하시겠습니까? (1. 예 / 2. 아니요) : ");
+                String regChoice = sc.nextLine();
+                if (regChoice.equals("1")) {
+                  custId = createNewCustomer(phone);
+                  System.out.println("\n✨ [신규 회원 등록] 코스타커피의 새로운 회원이 되신 것을 환영합니다!");
+                  break;
+                } else {
+                  System.out.println("다시 번호를 입력해 주세요.");
+                  continue;
+                }
+              } else { break; }
+            }
           }
-          // 2. 복합 결제 시 (총 주문 금액 - 사용한 포인트)의 5%만 적립
+
           int actualPaidAmount = totalOriginalPrice - usedPoint;
           earnedPoint = (int) (actualPaidAmount * 0.05);
           System.out.println("✅ " + earnedPoint + "P가 적립되었습니다.");
