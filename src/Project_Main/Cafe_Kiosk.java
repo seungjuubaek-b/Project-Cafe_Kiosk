@@ -64,7 +64,7 @@ public class Cafe_Kiosk {
         while (rs.next()) {
           System.out.print("[" + rs.getInt("categoryid") + "] " + rs.getString("category_name") + "   ");
         }
-        System.out.println("[0] 이전"); // 이름 수정: 이전/뒤로 -> 이전
+        System.out.println("[0] 이전");
 
         System.out.print("\n👉 선택 : ");
         String choice = sc.nextLine();
@@ -123,7 +123,6 @@ public class Cafe_Kiosk {
       System.out.print("📦 [" + product.name + "] 수량을 입력해주세요 : ");
       int qty = Integer.parseInt(sc.nextLine());
 
-      // 장바구니에 우선 추가
       cart.add(new CartItem(product, qty));
 
       System.out.println("\n✅ [" + product.name + " " + qty + "개]를 장바구니에 담았습니다.");
@@ -136,7 +135,6 @@ public class Cafe_Kiosk {
       System.out.println("---------------------------");
       System.out.println("현재 총 합계: " + tempTotal + "원");
 
-      // 사용자 요청에 따른 텍스트 및 로직 수정
       System.out.println("\n  [1] 추가 주문하기   [2] 결제하기   [0] 이전");
       System.out.print("👉 선택 : ");
       String choice = sc.nextLine();
@@ -148,7 +146,6 @@ public class Cafe_Kiosk {
         showPaymentConfirmScreen();
         return;
       } else if (choice.equals("0")) {
-        // [로직 추가] 수량 수정을 위해 방금 담은 아이템을 리스트에서 제거하고 메뉴판으로 복귀
         if(!cart.isEmpty()) cart.remove(cart.size() - 1);
         return;
       }
@@ -206,7 +203,8 @@ public class Cafe_Kiosk {
           continue;
         }
 
-        System.out.print("\n📱 핸드폰 번호를 입력해주세요 : ");
+        // [수정] 입력 예시 추가
+        System.out.print("\n📱 핸드폰 번호를 입력해주세요 (예: 010-1234-5678) : ");
         String phone = sc.nextLine();
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
@@ -253,7 +251,7 @@ public class Cafe_Kiosk {
         processFinalPayment(method, usedPointAmount, remainPrice, custId, customerPhone);
         return;
       } else if (choice.equals("0")) {
-        showPaymentConfirmScreen(); // 이전 단계인 결제 확인 화면으로 이동
+        showPaymentConfirmScreen();
         return;
       }
     }
@@ -276,7 +274,8 @@ public class Cafe_Kiosk {
 
     if (earnChoice.equals("1")) {
       if (custId == -1) {
-        System.out.print("\n📱 적립할 핸드폰 번호를 입력해주세요 : ");
+        // [수정] 입력 예시 추가
+        System.out.print("\n📱 적립할 핸드폰 번호를 입력해주세요 (예: 010-1234-5678) : ");
         phone = sc.nextLine();
         custId = findOrCreateCustomer(phone);
       }
